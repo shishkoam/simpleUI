@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.yo.shishkoam.simpleui.R;
-import com.yo.shishkoam.simpleui.activity.DetailsActivity;
 import com.yo.shishkoam.simpleui.activity.EditMovieActivity;
 import com.yo.shishkoam.simpleui.activity.MainActivity;
 import com.yo.shishkoam.simpleui.helpers.Consts;

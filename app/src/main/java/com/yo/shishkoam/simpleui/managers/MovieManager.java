@@ -49,7 +49,7 @@ public enum MovieManager {
     }
 
     public List<Movie> getMovieList() {
-        return new ArrayList<Movie>(movieMap.values());
+        return new ArrayList<>(movieMap.values());
     }
 
     public Movie getMovie(long id) {

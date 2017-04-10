@@ -46,7 +46,7 @@ public class EditMovieActivity extends AppCompatActivity
     private Activity activity = this;
     private EditText nameEditText, descriptionEditText;
     private TextView createTimeTextView, textViewFilePath;
-    private Button setDateButton;
+    private Button setDateButton, controlButton;
     private Switch adultSwitch;
     private ImageView imageView;
     private Spinner langSpinner;
@@ -57,7 +57,7 @@ public class EditMovieActivity extends AppCompatActivity
     private Uri imageUri;
     private boolean isEditMode = false;
     private View formView, progressView;
-
+    private ImageButton attachButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -75,7 +75,7 @@ public class EditMovieActivity extends AppCompatActivity
             movieID = intent.getLongExtra(MOVIE_ID, 0);
             isEditMode = intent.getBooleanExtra(IS_EDIT, false);
         }
-        ImageButton attachButton = (ImageButton) findViewById(R.id.attach);
+        attachButton = (ImageButton) findViewById(R.id.attach);
         calendar = Calendar.getInstance();
         formView = findViewById(R.id.main_form);
         progressView = findViewById(R.id.progress);
@@ -98,11 +98,11 @@ public class EditMovieActivity extends AppCompatActivity
         defaultRatingBar = (RatingBar) findViewById(R.id.ratingBar_default);
         restoreCurrentStatus(movieID);
 
-        Button button = (Button) findViewById(R.id.save);
+        controlButton = (Button) findViewById(R.id.save);
         if (isEditMode) {
-            turnOnEditing(attachButton, button);
+            turnOnEditing();
         } else {
-            turnOfEditing(attachButton, button);
+            turnOfEditing();
         }
 
         setDateButton.setOnClickListener(view -> {
@@ -125,23 +125,21 @@ public class EditMovieActivity extends AppCompatActivity
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-    private void turnOnEditing(ImageButton attachButton, Button button) {
-        button.setText(R.string.save);
+    private void turnOnEditing() {
+        controlButton.setText(R.string.save);
         isEditMode = true;
         setupEditMode(attachButton);
-        button.setOnClickListener(v -> {
+        controlButton.setOnClickListener(v -> {
             saveMovie();
-            turnOfEditing(attachButton, button);
+            turnOfEditing();
         });
     }
 
-    private void turnOfEditing(ImageButton attachButton, Button button) {
+    private void turnOfEditing() {
         isEditMode = false;
         setupEditMode(attachButton);
-        button.setText(R.string.to_edit);
-        button.setOnClickListener(view -> {
-            turnOnEditing(attachButton, button);
-        });
+        controlButton.setText(R.string.to_edit);
+        controlButton.setOnClickListener(view -> turnOnEditing());
     }
 
     private void setupEditMode(ImageButton attachButton) {
@@ -201,8 +199,12 @@ public class EditMovieActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        saveCurrentStatus();
+        if (isEditMode && movieID != 0) {
+            turnOfEditing();
+        } else {
+            super.onBackPressed();
+            saveCurrentStatus();
+        }
     }
 
     @Override
@@ -254,6 +256,7 @@ public class EditMovieActivity extends AppCompatActivity
             imageView.setImageDrawable(movie.getImage());
         }
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -16,9 +16,9 @@ import java.util.HashMap;
 public class UserDbHelper extends SQLiteOpenHelper {
 
     private final static String ID = "id";
-    String USERNAME = "adult";
-    String PASSWORD = "overview";
-    String DB_NAME = "users";
+    private String USERNAME = "adult";
+    private String PASSWORD = "overview";
+    private String DB_NAME = "users";
 
     public UserDbHelper(Context context) {
         super(context, "myDB2", null, 1);

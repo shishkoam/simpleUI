@@ -1,14 +1,12 @@
 package com.yo.shishkoam.simpleui.model;
 
 
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 
 import com.yo.shishkoam.simpleui.helpers.Utils;
 import com.yo.shishkoam.simpleui.types.Language;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 
 /**
  * Created by User on 08.04.2017

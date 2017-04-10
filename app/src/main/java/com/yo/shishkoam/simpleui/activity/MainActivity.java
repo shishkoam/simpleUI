@@ -31,7 +31,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements Consts {
 
     private RecyclerView recyclerView;
-    BroadcastReceiver broadcastReceiver;
+    private BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,12 +89,7 @@ public class MainActivity extends AppCompatActivity implements Consts {
         recyclerView.setHasFixedSize(true);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
-    public void sendNotification() {
+    private void sendNotification() {
         Context context = getApplicationContext();
 
         Intent notificationIntent = new Intent(context, MainActivity.class);
