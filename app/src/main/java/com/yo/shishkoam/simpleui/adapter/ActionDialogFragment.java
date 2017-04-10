@@ -44,12 +44,14 @@ public class ActionDialogFragment extends DialogFragment implements Consts {
         View editButton = view.findViewById(R.id.edit);
         editButton.setOnClickListener((v) -> {
             Intent intent = new Intent(getContext(), EditMovieActivity.class);
+            intent.putExtra(IS_EDIT, true);
             intent.putExtra(MOVIE_ID, movie.getId());
             startActivity(intent);
         });
         View moreButton = view.findViewById(R.id.more);
         moreButton.setOnClickListener((v) -> {
-            Intent intent = new Intent(getContext(), DetailsActivity.class);
+            Intent intent = new Intent(getContext(), EditMovieActivity.class);
+            intent.putExtra(IS_EDIT, false);
             intent.putExtra(MOVIE_ID, movie.getId());
             startActivity(intent);
         });

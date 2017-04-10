@@ -9,13 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.widget.ImageView;
 
 import com.yo.shishkoam.simpleui.BR;
 import com.yo.shishkoam.simpleui.R;
@@ -46,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements Consts {
 
         findViewById(R.id.add_button).setOnClickListener((v) -> {
             Intent intent = new Intent(MainActivity.this, EditMovieActivity.class);
+            intent.putExtra(IS_EDIT, true);
             startActivity(intent);
         });
 
@@ -82,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements Consts {
                 new RecyclerBindingAdapter<>(R.layout.list_item_movie, BR.movie, movies, false);
         adapter.setOnItemClickListener((position, item, view) -> {
             Intent intent = new Intent(MainActivity.this, EditMovieActivity.class);
+            intent.putExtra(IS_EDIT, false);
 //            Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
             intent.putExtra(MOVIE_ID, ((Movie) item).getId());
             startActivity(intent);

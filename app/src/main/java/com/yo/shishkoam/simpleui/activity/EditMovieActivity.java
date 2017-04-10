@@ -1,5 +1,7 @@
 package com.yo.shishkoam.simpleui.activity;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -8,18 +10,22 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.yo.shishkoam.simpleui.R;
 import com.yo.shishkoam.simpleui.helpers.Consts;
@@ -49,6 +55,8 @@ public class EditMovieActivity extends AppCompatActivity
     private long createTime;
     private long movieID;
     private Uri imageUri;
+    private boolean isEditMode = false;
+    private View formView, progressView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,11 +69,16 @@ public class EditMovieActivity extends AppCompatActivity
             imageUri = savedInstanceState.getParcelable(IMAGE_URI);
             imageView.setImageURI(imageUri);
             movieID = savedInstanceState.getLong(CURR_MOVIE, 0);
+            isEditMode = savedInstanceState.getBoolean(IS_EDIT, false);
         } else {
             Intent intent = getIntent();
             movieID = intent.getLongExtra(MOVIE_ID, 0);
+            isEditMode = intent.getBooleanExtra(IS_EDIT, false);
         }
+        ImageButton attachButton = (ImageButton) findViewById(R.id.attach);
         calendar = Calendar.getInstance();
+        formView = findViewById(R.id.main_form);
+        progressView = findViewById(R.id.progress);
         nameEditText = (EditText) findViewById(R.id.editText_name);
         createTimeTextView = (TextView) findViewById(R.id.textView_createTime);
         createTime = System.currentTimeMillis();
@@ -85,8 +98,12 @@ public class EditMovieActivity extends AppCompatActivity
         defaultRatingBar = (RatingBar) findViewById(R.id.ratingBar_default);
         restoreCurrentStatus(movieID);
 
-
-        findViewById(R.id.save).setOnClickListener(v -> saveMovie(movieID));
+        Button button = (Button) findViewById(R.id.save);
+        if (isEditMode) {
+            turnOnEditing(attachButton, button);
+        } else {
+            turnOfEditing(attachButton, button);
+        }
 
         setDateButton.setOnClickListener(view -> {
             DatePickerFragment newFragment = new DatePickerFragment();
@@ -97,7 +114,8 @@ public class EditMovieActivity extends AppCompatActivity
             newFragment.show(activity.getFragmentManager(), "datePicker");
         });
 
-        findViewById(R.id.attach).setOnClickListener((v) -> {
+
+        attachButton.setOnClickListener((v) -> {
             Intent fileSelectIntent = new Intent(Intent.ACTION_GET_CONTENT);
             fileSelectIntent.setType("*/*");
             startActivityForResult(fileSelectIntent, FILE_REQUEST);
@@ -107,26 +125,47 @@ public class EditMovieActivity extends AppCompatActivity
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-    private void saveMovie(long movieID) {
-        Movie movie = MovieManager.INSTANCE.getMovie(movieID);
-        String title = nameEditText.getText().toString();
-        long releaseDate = calendar.getTimeInMillis();
-        String overview = descriptionEditText.getText().toString();
-        boolean adult = adultSwitch.isChecked();
-        Language originalLanguage = (Language) langSpinner.getSelectedItem();
-        Drawable image = imageView.getDrawable();
-        float voteAvg = defaultRatingBar.getRating();
-        String filePath = textViewFilePath.getText().toString();
-        if (movie == null) {
-            movie = new Movie(adult, overview, releaseDate, System.currentTimeMillis(),
-                    originalLanguage, title, image, voteAvg, filePath);
-            MovieManager.INSTANCE.addMovie(movie);
-        } else {
-            movie = new Movie(adult, overview, releaseDate, movie.getId(),
-                    originalLanguage, title, image, voteAvg, filePath);
-            MovieManager.INSTANCE.changeMovie(movie);
-        }
-        onBackPressed();
+    private void turnOnEditing(ImageButton attachButton, Button button) {
+        button.setText(R.string.save);
+        isEditMode = true;
+        setupEditMode(attachButton);
+        button.setOnClickListener(v -> {
+            saveMovie();
+            turnOfEditing(attachButton, button);
+        });
+    }
+
+    private void turnOfEditing(ImageButton attachButton, Button button) {
+        isEditMode = false;
+        setupEditMode(attachButton);
+        button.setText(R.string.to_edit);
+        button.setOnClickListener(view -> {
+            turnOnEditing(attachButton, button);
+        });
+    }
+
+    private void setupEditMode(ImageButton attachButton) {
+        defaultRatingBar.setEnabled(isEditMode);
+        defaultRatingBar.setFocusable(isEditMode);
+        langSpinner.setEnabled(isEditMode);
+        langSpinner.setFocusable(isEditMode);
+        nameEditText.setEnabled(isEditMode);
+        nameEditText.setFocusable(isEditMode);
+        descriptionEditText.setEnabled(isEditMode);
+        descriptionEditText.setFocusable(isEditMode);
+        setDateButton.setEnabled(isEditMode);
+        setDateButton.setFocusable(isEditMode);
+        imageView.setEnabled(isEditMode);
+        imageView.setFocusable(isEditMode);
+        adultSwitch.setEnabled(isEditMode);
+        adultSwitch.setFocusable(isEditMode);
+        attachButton.setEnabled(isEditMode);
+        attachButton.setFocusable(isEditMode);
+    }
+
+    private void saveMovie() {
+        SaveMovie saveMovie = new SaveMovie();
+        saveMovie.execute();
     }
 
     private void initSpinnerLang() {
@@ -135,9 +174,6 @@ public class EditMovieActivity extends AppCompatActivity
         langSpinner.setAdapter(adapter);
     }
 
-    /**
-     * Діалог вибору дати.
-     */
     public static class DatePickerFragment extends DialogFragment {
 
         private DatePickerDialog.OnDateSetListener onDateSetListener;
@@ -174,6 +210,7 @@ public class EditMovieActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
         outState.putLong(CURR_MOVIE, movieID);
         outState.putParcelable(IMAGE_URI, imageUri);
+        outState.putBoolean(IS_EDIT, isEditMode);
     }
 
     private void saveCurrentStatus() {
@@ -252,4 +289,78 @@ public class EditMovieActivity extends AppCompatActivity
                 break;
         }
     }
+
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    private void showProgress(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        formView.setVisibility(show ? View.GONE : View.VISIBLE);
+
+        formView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                formView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        progressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+    }
+
+    private class SaveMovie extends AsyncTask<Void, Integer, Void> {
+        private Movie movie;
+        private boolean change = false;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            showProgress(true);
+            movie = MovieManager.INSTANCE.getMovie(movieID);
+            String title = nameEditText.getText().toString();
+            long releaseDate = calendar.getTimeInMillis();
+            String overview = descriptionEditText.getText().toString();
+            boolean adult = adultSwitch.isChecked();
+            Language originalLanguage = (Language) langSpinner.getSelectedItem();
+            Drawable image = imageView.getDrawable();
+            float voteAvg = defaultRatingBar.getRating();
+            String filePath = textViewFilePath.getText().toString();
+            if (movie == null) {
+                movieID = System.currentTimeMillis();
+                movie = new Movie(adult, overview, releaseDate, movieID,
+                        originalLanguage, title, image, voteAvg, filePath);
+                change = false;
+            } else {
+                movie = new Movie(adult, overview, releaseDate, movie.getId(),
+                        originalLanguage, title, image, voteAvg, filePath);
+                change = true;
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            if (change) {
+                MovieManager.INSTANCE.changeMovie(movie);
+            } else {
+                MovieManager.INSTANCE.addMovie(movie);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            Toast.makeText(activity, R.string.element_saved, Toast.LENGTH_SHORT).show();
+            showProgress(false);
+        }
+    }
+
 }

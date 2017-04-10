@@ -21,7 +21,7 @@ public interface Consts {
     String RELEASE = "release";
     String TITLE = "title";
     String LANG = "lang";
-    String POPULARITY = "popularity";
+    String IS_EDIT = "isEditMode";
     String VOTE_COUNT = "vote_count";
     String VOTE_AVERAGE = "vote_avg";
     int NOTIFY_ID = 101;

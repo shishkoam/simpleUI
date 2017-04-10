@@ -34,4 +34,6 @@
     <string name="no_file">Нет файла</string>
     <string name="_18">Только 18+</string>
     <string name="name">Название</string>
+    <string name="to_edit">Редактировать</string>
+    <string name="element_saved">Элемент сохранен!</string>
 </resources>
