@@ -128,7 +128,7 @@ public class EditMovieActivity extends AppCompatActivity
     private void turnOnEditing() {
         controlButton.setText(R.string.save);
         isEditMode = true;
-        setupEditMode(attachButton);
+        setupEditMode();
         controlButton.setOnClickListener(v -> {
             saveMovie();
             turnOfEditing();
@@ -137,28 +137,27 @@ public class EditMovieActivity extends AppCompatActivity
 
     private void turnOfEditing() {
         isEditMode = false;
-        setupEditMode(attachButton);
+        setupEditMode();
         controlButton.setText(R.string.to_edit);
         controlButton.setOnClickListener(view -> turnOnEditing());
     }
 
-    private void setupEditMode(ImageButton attachButton) {
+    private void setupEditMode() {
         defaultRatingBar.setEnabled(isEditMode);
-        defaultRatingBar.setFocusable(isEditMode);
         langSpinner.setEnabled(isEditMode);
-        langSpinner.setFocusable(isEditMode);
         nameEditText.setEnabled(isEditMode);
-        nameEditText.setFocusable(isEditMode);
         descriptionEditText.setEnabled(isEditMode);
-        descriptionEditText.setFocusable(isEditMode);
         setDateButton.setEnabled(isEditMode);
-        setDateButton.setFocusable(isEditMode);
         imageView.setEnabled(isEditMode);
-        imageView.setFocusable(isEditMode);
         adultSwitch.setEnabled(isEditMode);
-        adultSwitch.setFocusable(isEditMode);
         attachButton.setEnabled(isEditMode);
-        attachButton.setFocusable(isEditMode);
+        defaultRatingBar.clearFocus();
+        langSpinner.clearFocus();
+        nameEditText.clearFocus();
+        descriptionEditText.clearFocus();
+        setDateButton.clearFocus();
+        imageView.clearFocus();
+        attachButton.clearFocus();
     }
 
     private void saveMovie() {
