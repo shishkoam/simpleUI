@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.yo.shishkoam.simpleui.R;
 import com.yo.shishkoam.simpleui.helpers.Consts;
+import com.yo.shishkoam.simpleui.helpers.TaskManager;
 import com.yo.shishkoam.simpleui.helpers.Utils;
 import com.yo.shishkoam.simpleui.managers.MovieManager;
 import com.yo.shishkoam.simpleui.model.Movie;
@@ -58,6 +59,7 @@ public class EditMovieActivity extends AppCompatActivity
     private boolean isEditMode = false;
     private View formView, progressView;
     private ImageButton attachButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -123,6 +125,12 @@ public class EditMovieActivity extends AppCompatActivity
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        if (TaskManager.getInstance().hasActiveTasks()) {
+            //here we process async tasks that were running before device rotation
+            TaskManager.getInstance().linkTasksToNewActivity(this);
+            showProgress(true);
+        }
     }
 
     private void turnOnEditing() {
@@ -161,7 +169,8 @@ public class EditMovieActivity extends AppCompatActivity
     }
 
     private void saveMovie() {
-        SaveMovie saveMovie = new SaveMovie();
+        SaveMovie saveMovie = new SaveMovie(this);
+        TaskManager.getInstance().addTask(saveMovie);
         saveMovie.execute();
     }
 
@@ -295,7 +304,7 @@ public class EditMovieActivity extends AppCompatActivity
     /**
      * Shows the progress UI and hides the login form.
      */
-    private void showProgress(final boolean show) {
+    public void showProgress(final boolean show) {
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         formView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -318,9 +327,13 @@ public class EditMovieActivity extends AppCompatActivity
         });
     }
 
-    private class SaveMovie extends AsyncTask<Void, Integer, Void> {
+    private class SaveMovie extends LinkActivityAsyncTask<Void, Integer, Void> {
         private Movie movie;
         private boolean change = false;
+
+        SaveMovie(EditMovieActivity activity) {
+            super(activity);
+        }
 
         @Override
         protected void onPreExecute() {
@@ -360,8 +373,24 @@ public class EditMovieActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            Toast.makeText(activity, R.string.element_saved, Toast.LENGTH_SHORT).show();
-            showProgress(false);
+            Toast.makeText(getActivity(), R.string.element_saved, Toast.LENGTH_SHORT).show();
+            getActivity().showProgress(false);
+        }
+    }
+
+    public abstract class LinkActivityAsyncTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result> {
+        private EditMovieActivity activity;
+
+        LinkActivityAsyncTask(EditMovieActivity activity) {
+            this.activity = activity;
+        }
+
+        public void linkActivity(EditMovieActivity activity) {
+            this.activity = activity;
+        }
+
+        EditMovieActivity getActivity() {
+            return activity;
         }
     }
 
